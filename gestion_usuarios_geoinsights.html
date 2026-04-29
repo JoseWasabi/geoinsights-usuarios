@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GeoInsights — Gestión de Usuarios</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #2E8B57;
+    --green-light: #3aa86a;
+    --green-dim: #1d5c3a;
+    --green-bg: #e8f5ee;
+    --bg: #F4F5EF;
+    --surface: #ffffff;
+    --surface2: #f0f1eb;
+    --border: #d8dbd0;
+    --text: #1a1f16;
+    --text-muted: #6b7260;
+    --red: #c0392b;
+    --red-bg: #fdf0ee;
+    --amber: #d97706;
+    --amber-bg: #fef3cd;
+    --mono: 'DM Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--green-dim);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    border-bottom: 2px solid var(--green);
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .logo-mark {
+    width: 28px;
+    height: 28px;
+    background: var(--green);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: white;
+    font-weight: 500;
+    letter-spacing: -0.5px;
+  }
+
+  .header-title {
+    color: #fff;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+  }
+
+  .header-title span {
+    color: #a8c8b4;
+    font-weight: 300;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #a8c8b4;
+    font-family: var(--mono);
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    background: #4ade80;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* NAV TABS */
+  .nav {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    display: flex;
+    gap: 0;
+  }
+
+  .nav-tab {
+    padding: 12px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: all 0.15s;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .nav-tab:hover { color: var(--green); }
+  .nav-tab.active { color: var(--green); border-bottom-color: var(--green); }
+
+  .nav-tab .badge {
+    background: var(--green-bg);
+    color: var(--green);
+    font-size: 10px;
+    font-family: var(--mono);
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-weight: 500;
+  }
+
+  /* MAIN CONTENT */
+  .main {
+    padding: 28px 32px;
+    max-width: 1200px;
+  }
+
+  /* KPI STRIP */
+  .kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .kpi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .kpi-label {
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+
+  .kpi-value {
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .kpi-value.green { color: var(--green); }
+  .kpi-value.red { color: var(--red); }
+
+  .kpi-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  /* TOOLBAR */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    gap: 12px;
+  }
+
+  .toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+  }
+
+  .search-box {
+    display: flex;
+    align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0 12px;
+    gap: 8px;
+    flex: 1;
+    max-width: 320px;
+  }
+
+  .search-box svg { color: var(--text-muted); flex-shrink: 0; }
+
+  .search-box input {
+    border: none;
+    outline: none;
+    font-size: 13px;
+    font-family: var(--sans);
+    color: var(--text);
+    background: transparent;
+    padding: 9px 0;
+    width: 100%;
+  }
+
+  .search-box input::placeholder { color: var(--text-muted); }
+
+  .filter-select {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-family: var(--sans);
+    color: var(--text);
+    background: var(--surface);
+    outline: none;
+    cursor: pointer;
+  }
+
+  .btn-primary {
+    background: var(--green);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 9px 18px;
+    font-size: 13px;
+    font-family: var(--sans);
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.15s;
+    white-space: nowrap;
+  }
+
+  .btn-primary:hover { background: var(--green-light); }
+
+  .btn-secondary {
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-family: var(--sans);
+    font-weight: 400;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s;
+  }
+
+  .btn-secondary:hover { border-color: var(--green); color: var(--green); }
+
+  /* TABLE */
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  thead tr {
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  th {
+    padding: 11px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-family: var(--mono);
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 13px 16px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  tbody tr {
+    transition: background 0.1s;
+  }
+
+  tbody tr:hover { background: #fafbf8; }
+
+  .td-name {
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .td-email {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .td-id {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    background: var(--surface2);
+    padding: 2px 8px;
+    border-radius: 4px;
+    display: inline-block;
+  }
+
+  /* BADGES */
+  .badge-rol {
+    font-size: 11px;
+    font-family: var(--mono);
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+
+  .badge-admin { background: #e8f0fe; color: #2563eb; }
+  .badge-operador { background: var(--green-bg); color: var(--green-dim); }
+  .badge-consultor { background: var(--amber-bg); color: var(--amber); }
+
+  .badge-estado {
+    font-size: 11px;
+    font-family: var(--mono);
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .badge-activo { background: var(--green-bg); color: var(--green-dim); }
+  .badge-inactivo { background: var(--red-bg); color: var(--red); }
+
+  .badge-estado::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  /* ACTIONS */
+  .actions { display: flex; gap: 6px; }
+
+  .btn-action {
+    border: 1px solid var(--border);
+    background: transparent;
+    border-radius: 5px;
+    padding: 5px 10px;
+    font-size: 11px;
+    font-family: var(--mono);
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--text-muted);
+  }
+
+  .btn-action:hover { border-color: var(--green); color: var(--green); background: var(--green-bg); }
+  .btn-action.danger:hover { border-color: var(--red); color: var(--red); background: var(--red-bg); }
+
+  /* EMPTY STATE */
+  .empty-state {
+    padding: 48px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+
+  /* LOADING */
+  .loading-row td {
+    padding: 32px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-family: var(--mono);
+  }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+
+  .modal-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .modal {
+    background: var(--surface);
+    border-radius: 10px;
+    width: 480px;
+    max-width: 95vw;
+    border: 1px solid var(--border);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    transform: translateY(8px);
+    transition: transform 0.2s;
+  }
+
+  .modal-overlay.open .modal { transform: translateY(0); }
+
+  .modal-header {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .modal-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .modal-subtitle {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 18px;
+    padding: 4px;
+    line-height: 1;
+    border-radius: 4px;
+  }
+
+  .modal-close:hover { background: var(--surface2); color: var(--text); }
+
+  .modal-body {
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .form-group.full { grid-column: 1 / -1; }
+
+  label {
+    font-size: 11px;
+    font-family: var(--mono);
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+  }
+
+  input[type="text"], input[type="email"], select {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 9px 12px;
+    font-size: 13px;
+    font-family: var(--sans);
+    color: var(--text);
+    background: var(--bg);
+    outline: none;
+    transition: border-color 0.15s;
+    width: 100%;
+  }
+
+  input:focus, select:focus { border-color: var(--green); background: white; }
+
+  .modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--green-dim);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: var(--sans);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.error { background: var(--red); }
+
+  /* FOOTER */
+  .table-footer {
+    padding: 10px 16px;
+    background: var(--surface2);
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--text-muted);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .sync-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .btn-sync {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-sync:hover { border-color: var(--green); color: var(--green); }
+
+  .spinning { animation: spin 0.8s linear infinite; display: inline-block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <div class="logo-mark">GI</div>
+    <div class="header-title">GeoInsights <span>/ Cortal Gran</span></div>
+  </div>
+  <div class="header-right">
+    <div class="status-dot"></div>
+    Conectado · Wasabi Zebra
+  </div>
+</div>
+
+<!-- NAV -->
+<div class="nav">
+  <div class="nav-tab">Dashboard</div>
+  <div class="nav-tab">Dispositivos GPS</div>
+  <div class="nav-tab active">Usuarios <span class="badge" id="nav-badge">—</span></div>
+  <div class="nav-tab">Configuración</div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- KPIs -->
+  <div class="kpi-strip">
+    <div class="kpi-card">
+      <div class="kpi-label">Total usuarios</div>
+      <div class="kpi-value" id="kpi-total">—</div>
+      <div class="kpi-sub">registrados en el sistema</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Activos</div>
+      <div class="kpi-value green" id="kpi-activos">—</div>
+      <div class="kpi-sub">con acceso habilitado</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Inactivos</div>
+      <div class="kpi-value red" id="kpi-inactivos">—</div>
+      <div class="kpi-sub">acceso revocado</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Organizaciones</div>
+      <div class="kpi-value" id="kpi-orgs">—</div>
+      <div class="kpi-sub">entidades con acceso</div>
+    </div>
+  </div>
+
+  <!-- TOOLBAR -->
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <div class="search-box">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="search-input" placeholder="Buscar por nombre, email u organización…" oninput="filterTable()">
+      </div>
+      <select class="filter-select" id="filter-estado" onchange="filterTable()">
+        <option value="">Todos los estados</option>
+        <option value="Activo">Activos</option>
+        <option value="Inactivo">Inactivos</option>
+      </select>
+      <select class="filter-select" id="filter-rol" onchange="filterTable()">
+        <option value="">Todos los roles</option>
+        <option value="Administrador">Administrador</option>
+        <option value="Operador">Operador</option>
+        <option value="Consultor">Consultor</option>
+      </select>
+    </div>
+    <button class="btn-secondary" onclick="loadUsers()">
+      <span id="sync-icon">↻</span> Sincronizar
+    </button>
+    <button class="btn-primary" onclick="openModal()">
+      + Nuevo usuario
+    </button>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Email</th>
+          <th>Organización</th>
+          <th>Rol</th>
+          <th>Estado</th>
+          <th>Última conexión</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="table-body">
+        <tr class="loading-row"><td colspan="8">Cargando usuarios…</td></tr>
+      </tbody>
+    </table>
+    <div class="table-footer">
+      <span id="table-count">—</span>
+      <div class="sync-info">
+        <span id="last-sync">—</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ALTA -->
+<div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="modal-title">Nuevo usuario</div>
+        <div class="modal-subtitle">El usuario se añadirá al sistema GeoInsights</div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-id">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nombre completo</label>
+          <input type="text" id="f-nombre" placeholder="Ej: Marc Puig">
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="f-email" placeholder="usuario@empresa.com">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Organización</label>
+          <input type="text" id="f-org" placeholder="Ej: Serrater S.L.">
+        </div>
+        <div class="form-group">
+          <label>Rol</label>
+          <select id="f-rol">
+            <option value="Operador">Operador</option>
+            <option value="Administrador">Administrador</option>
+            <option value="Consultor">Consultor</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row" id="estado-row" style="display:none">
+        <div class="form-group">
+          <label>Estado</label>
+          <select id="f-estado">
+            <option value="Activo">Activo</option>
+            <option value="Inactivo">Inactivo</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal()">Cancelar</button>
+      <button class="btn-primary" onclick="saveUser()">Guardar usuario</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwdVdJDOfK_LAqkN4luF5I8Q28fu14cp5o7bkmwrpR6Zrj2P1THW0CTQ3V5tpBJ8j7-/exec';
+
+  let allUsers = [];
+  let editMode = false;
+
+  async function loadUsers() {
+    const icon = document.getElementById('sync-icon');
+    icon.classList.add('spinning');
+    try {
+      const r = await fetch(SCRIPT_URL);
+      const json = await r.json();
+      if (Array.isArray(json) && json.length > 0) {
+        allUsers = json;
+        renderTable(allUsers);
+        updateKPIs(allUsers);
+        document.getElementById('last-sync').textContent = 'Ultima sync: ' + new Date().toLocaleTimeString('es-ES');
+      } else {
+        showToast('Sin datos en la hoja', true);
+      }
+    } catch(e) {
+      showToast('Error al cargar: ' + e.message, true);
+      console.error(e);
+    }
+    icon.classList.remove('spinning');
+  }
+
+  function renderTable(users) {
+    const tbody = document.getElementById('table-body');
+    const search = document.getElementById('search-input').value.toLowerCase();
+    const fEstado = document.getElementById('filter-estado').value;
+    const fRol = document.getElementById('filter-rol').value;
+
+    let filtered = users.filter(function(u) {
+      const matchSearch = !search ||
+        (u.nombre||'').toLowerCase().includes(search) ||
+        (u.email||'').toLowerCase().includes(search) ||
+        (u.organizacion||'').toLowerCase().includes(search);
+      const matchEstado = !fEstado || u.estado === fEstado;
+      const matchRol = !fRol || u.rol === fRol;
+      return matchSearch && matchEstado && matchRol;
+    });
+
+    if (!filtered.length) {
+      tbody.innerHTML = '<tr class="loading-row"><td colspan="8">Sin resultados</td></tr>';
+      document.getElementById('table-count').textContent = '0 usuarios';
+      return;
+    }
+
+    tbody.innerHTML = filtered.map(function(u) {
+      return '<tr>' +
+        '<td><span class="td-id">#' + u.id + '</span></td>' +
+        '<td class="td-name">' + u.nombre + '</td>' +
+        '<td class="td-email">' + u.email + '</td>' +
+        '<td>' + u.organizacion + '</td>' +
+        '<td><span class="badge-rol ' + rolClass(u.rol) + '">' + u.rol + '</span></td>' +
+        '<td><span class="badge-estado ' + (u.estado === 'Activo' ? 'badge-activo' : 'badge-inactivo') + '">' + u.estado + '</span></td>' +
+        '<td style="font-size:12px;color:var(--text-muted);font-family:var(--mono)">' + formatDate(u.ultimaConexion) + '</td>' +
+        '<td><div class="actions">' +
+          '<button class="btn-action" onclick="editUser(' + u.id + ')">editar</button>' +
+          '<button class="btn-action danger" onclick="toggleEstado(' + u.id + ',\'' + u.estado + '\')">'+
+          (u.estado === 'Activo' ? 'dar de baja' : 'reactivar') +
+          '</button></div></td>' +
+        '</tr>';
+    }).join('');
+
+    document.getElementById('table-count').textContent = filtered.length + ' usuario' + (filtered.length !== 1 ? 's' : '') + ' mostrados';
+  }
+
+  function rolClass(rol) {
+    if (rol === 'Administrador') return 'badge-admin';
+    if (rol === 'Operador') return 'badge-operador';
+    return 'badge-consultor';
+  }
+
+  function updateKPIs(users) {
+    const activos = users.filter(function(u){ return u.estado === 'Activo'; }).length;
+    const inactivos = users.filter(function(u){ return u.estado === 'Inactivo'; }).length;
+    const orgs = new Set(users.map(function(u){ return u.organizacion; }).filter(Boolean)).size;
+    document.getElementById('kpi-total').textContent = users.length;
+    document.getElementById('kpi-activos').textContent = activos;
+    document.getElementById('kpi-inactivos').textContent = inactivos;
+    document.getElementById('kpi-orgs').textContent = orgs;
+    document.getElementById('nav-badge').textContent = activos;
+  }
+
+  function filterTable() { renderTable(allUsers); }
+
+  function openModal(prefill) {
+    editMode = false;
+    document.getElementById('modal-title').textContent = 'Nuevo usuario';
+    document.getElementById('edit-id').value = '';
+    document.getElementById('f-nombre').value = (prefill && prefill.nombre) ? prefill.nombre : '';
+    document.getElementById('f-email').value = (prefill && prefill.email) ? prefill.email : '';
+    document.getElementById('f-org').value = (prefill && prefill.org) ? prefill.org : '';
+    document.getElementById('f-rol').value = (prefill && prefill.rol) ? prefill.rol : 'Operador';
+    document.getElementById('estado-row').style.display = 'none';
+    document.getElementById('modal-overlay').classList.add('open');
+  }
+
+  function editUser(id) {
+    const u = allUsers.find(function(u){ return u.id == id; });
+    if (!u) return;
+    editMode = true;
+    document.getElementById('modal-title').textContent = 'Editar usuario';
+    document.getElementById('edit-id').value = u.id;
+    document.getElementById('f-nombre').value = u.nombre;
+    document.getElementById('f-email').value = u.email;
+    document.getElementById('f-org').value = u.organizacion;
+    document.getElementById('f-rol').value = u.rol;
+    document.getElementById('f-estado').value = u.estado;
+    document.getElementById('estado-row').style.display = 'grid';
+    document.getElementById('modal-overlay').classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('modal-overlay').classList.remove('open');
+  }
+
+  function handleOverlayClick(e) {
+    if (e.target === document.getElementById('modal-overlay')) closeModal();
+  }
+
+  async function saveUser() {
+    const nombre = document.getElementById('f-nombre').value.trim();
+    const email = document.getElementById('f-email').value.trim();
+    const org = document.getElementById('f-org').value.trim();
+    const rol = document.getElementById('f-rol').value;
+    const estado = document.getElementById('f-estado').value;
+    const id = document.getElementById('edit-id').value;
+
+    if (!nombre || !email || !org) {
+      showToast('Completa todos los campos obligatorios', true);
+      return;
+    }
+
+    const payload = editMode
+      ? { action: 'update', id: id, nombre: nombre, email: email, organizacion: org, rol: rol, estado: estado }
+      : { action: 'add', nombre: nombre, email: email, organizacion: org, rol: rol };
+
+    closeModal();
+    showToast(editMode ? 'Guardando cambios...' : 'Creando usuario...');
+
+    try {
+      await fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      await wait(1800);
+      await loadUsers();
+      showToast(editMode ? 'Usuario actualizado correctamente' : 'Usuario creado correctamente');
+    } catch(e) {
+      showToast('Error al guardar: ' + e.message, true);
+    }
+  }
+
+  async function toggleEstado(id, estadoActual) {
+    const nuevoEstado = estadoActual === 'Activo' ? 'Inactivo' : 'Activo';
+    const u = allUsers.find(function(u){ return u.id == id; });
+    if (!u) return;
+    const accion = nuevoEstado === 'Inactivo' ? 'dar de baja' : 'reactivar';
+    if (!confirm('Confirmas ' + accion + ' al usuario ' + u.nombre + '?')) return;
+    showToast('Actualizando estado...');
+    try {
+      await fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update', id: u.id, nombre: u.nombre, email: u.email, organizacion: u.organizacion, rol: u.rol, estado: nuevoEstado })
+      });
+      await wait(1800);
+      await loadUsers();
+      showToast('Usuario ' + (nuevoEstado === 'Inactivo' ? 'dado de baja' : 'reactivado') + ' correctamente');
+    } catch(e) {
+      showToast('Error al actualizar estado', true);
+    }
+  }
+
+  function wait(ms) { return new Promise(function(r){ setTimeout(r, ms); }); }
+
+  function showToast(msg, isError) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast' + (isError ? ' error' : '');
+    t.classList.add('show');
+    setTimeout(function(){ t.classList.remove('show'); }, 3500);
+  }
+
+  function formatDate(val) {
+    if (!val) return '-';
+    try {
+      const d = new Date(val);
+      if (isNaN(d)) return val;
+      return d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    } catch(e) { return val; }
+  }
+
+  loadUsers();
+</script>
+</body>
+</html>
