@@ -608,10 +608,11 @@
 
 <!-- NAV -->
 <div class="nav">
-  <div class="nav-tab">Dashboard</div>
-  <div class="nav-tab">Dispositivos GPS</div>
-  <div class="nav-tab active">Usuarios <span class="badge" id="nav-badge">—</span></div>
-  <div class="nav-tab">Configuración</div>
+  <div class="nav-tab" onclick="showUsers()">Dashboard</div>
+  <div class="nav-tab" onclick="showUsers()">Dispositivos GPS</div>
+  <div class="nav-tab active" id="tab-usuarios" onclick="showUsers()">Usuarios <span class="badge" id="nav-badge">—</span></div>
+  <div class="nav-tab" onclick="showUsers()">Configuración</div>
+  <div class="nav-tab" id="tab-logs" onclick="showLogs()">Logs de acceso <span class="badge" id="logs-badge">247</span></div>
 </div>
 
 <!-- MAIN -->
@@ -696,6 +697,59 @@
   </div>
 </div>
 
+<!-- LOGS PANEL -->
+<div id="logs-panel" style="display:none; padding:28px 32px; max-width:1200px;">
+
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+    <div>
+      <div style="font-size:15px; font-weight:600; color:var(--text);">Registros de acceso</div>
+      <div style="font-size:12px; color:var(--text-muted); margin-top:3px; font-family:var(--mono);">GeoInsights — Cortal Gran · Serrater S.L.</div>
+    </div>
+    <div style="display:flex; gap:10px; align-items:center;">
+      <select class="filter-select" id="log-filter-user" onchange="filterLogs()">
+        <option value="">Todos los usuarios</option>
+        <option value="m.puig@serrater.com">m.puig@serrater.com</option>
+        <option value="l.vidal@serrater.com">l.vidal@serrater.com</option>
+        <option value="j.mas@serrater.com">j.mas@serrater.com</option>
+        <option value="a.ferrer@wasabizebra.com">a.ferrer@wasabizebra.com</option>
+        <option value="p.roca@serrater.com">p.roca@serrater.com</option>
+        <option value="jbarcelo@wasabizebra.com">jbarcelo@wasabizebra.com</option>
+      </select>
+      <select class="filter-select" id="log-filter-action" onchange="filterLogs()">
+        <option value="">Todas las acciones</option>
+        <option value="LOGIN">LOGIN</option>
+        <option value="LOGOUT">LOGOUT</option>
+        <option value="VIEW_DASHBOARD">VIEW_DASHBOARD</option>
+        <option value="EXPORT_DATA">EXPORT_DATA</option>
+        <option value="VIEW_MAP">VIEW_MAP</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Fecha y hora</th>
+          <th>Usuario</th>
+          <th>Organización</th>
+          <th>Acción</th>
+          <th>IP</th>
+          <th>Estado</th>
+          <th>Duración</th>
+        </tr>
+      </thead>
+      <tbody id="logs-tbody"></tbody>
+    </table>
+    <div class="table-footer">
+      <span id="logs-count">247 registros</span>
+      <span style="font-family:var(--mono); font-size:11px; color:var(--text-muted);">Período: 01/01/2025 — 29/04/2026</span>
+    </div>
+  </div>
+</div>
+
+<!-- LOGS PANEL -->
 <!-- MODAL ALTA -->
 <div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
   <div class="modal">
@@ -949,6 +1003,141 @@
       if (isNaN(d)) return val;
       return d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
     } catch(e) { return val; }
+  }
+
+
+  // ── NAV SWITCHING ──────────────────────────────────────
+  function showLogs() {
+    document.querySelector('.main').style.display = 'none';
+    document.getElementById('logs-panel').style.display = 'block';
+    document.querySelectorAll('.nav-tab').forEach(function(t){ t.classList.remove('active'); });
+    document.getElementById('tab-logs').classList.add('active');
+    renderLogs(LOG_DATA);
+  }
+
+  function showUsers() {
+    document.querySelector('.main').style.display = 'block';
+    document.getElementById('logs-panel').style.display = 'none';
+  }
+
+  // ── LOG DATA ───────────────────────────────────────────
+  const USERS_LOG = [
+    { email: 'm.puig@serrater.com', org: 'Serrater S.L.' },
+    { email: 'l.vidal@serrater.com', org: 'Serrater S.L.' },
+    { email: 'j.mas@serrater.com', org: 'Serrater S.L.' },
+    { email: 'a.ferrer@wasabizebra.com', org: 'Wasabi Zebra' },
+    { email: 'p.roca@serrater.com', org: 'Serrater S.L.' },
+    { email: 'jbarcelo@wasabizebra.com', org: 'Wasabi Zebra' }
+  ];
+
+  const ACTIONS = ['LOGIN','LOGOUT','VIEW_DASHBOARD','VIEW_MAP','EXPORT_DATA','VIEW_DASHBOARD','LOGIN','VIEW_DASHBOARD','VIEW_MAP'];
+  const IPS = ['85.53.142.11','85.53.142.11','88.12.201.44','88.12.201.44','212.166.78.3','212.166.78.3','194.30.4.102','194.30.4.102'];
+  const DURATIONS = ['—','42 min','18 min','—','67 min','31 min','—','55 min','24 min','12 min','—','88 min'];
+
+  function genLogs() {
+    var logs = [];
+    var id = 1;
+    // 2026 entries (Jan-Apr, heavy)
+    var dates2026 = [
+      '2026-04-29','2026-04-29','2026-04-28','2026-04-28','2026-04-27','2026-04-27',
+      '2026-04-25','2026-04-24','2026-04-23','2026-04-22','2026-04-22','2026-04-21',
+      '2026-04-18','2026-04-17','2026-04-16','2026-04-15','2026-04-14','2026-04-11',
+      '2026-04-10','2026-04-09','2026-04-08','2026-04-07','2026-04-04','2026-04-03',
+      '2026-04-02','2026-04-01','2026-03-31','2026-03-28','2026-03-27','2026-03-26',
+      '2026-03-25','2026-03-24','2026-03-21','2026-03-20','2026-03-19','2026-03-18',
+      '2026-03-17','2026-03-14','2026-03-13','2026-03-12','2026-03-11','2026-03-10',
+      '2026-03-07','2026-03-06','2026-03-05','2026-03-04','2026-03-03','2026-02-28',
+      '2026-02-27','2026-02-26','2026-02-25','2026-02-24','2026-02-21','2026-02-20',
+      '2026-02-19','2026-02-18','2026-02-17','2026-02-14','2026-02-13','2026-02-12',
+      '2026-02-11','2026-02-10','2026-02-07','2026-02-06','2026-02-05','2026-02-04',
+      '2026-02-03','2026-01-31','2026-01-30','2026-01-29','2026-01-28','2026-01-27',
+      '2026-01-24','2026-01-23','2026-01-22','2026-01-21','2026-01-20','2026-01-17',
+      '2026-01-16','2026-01-15','2026-01-14','2026-01-13','2026-01-10','2026-01-09',
+      '2026-01-08','2026-01-07','2026-01-06'
+    ];
+    var dates2025 = [
+      '2025-12-30','2025-12-29','2025-12-22','2025-12-19','2025-12-18','2025-12-15',
+      '2025-12-12','2025-12-11','2025-12-08','2025-12-05','2025-12-04','2025-12-01',
+      '2025-11-28','2025-11-27','2025-11-26','2025-11-25','2025-11-24','2025-11-21',
+      '2025-11-20','2025-11-19','2025-11-18','2025-11-17','2025-11-14','2025-11-13',
+      '2025-11-12','2025-11-11','2025-11-10','2025-11-07','2025-11-06','2025-11-05',
+      '2025-10-31','2025-10-30','2025-10-29','2025-10-28','2025-10-27','2025-10-24',
+      '2025-10-23','2025-10-22','2025-10-21','2025-10-20','2025-10-17','2025-10-16',
+      '2025-10-15','2025-10-14','2025-10-13','2025-10-10','2025-10-09','2025-10-08',
+      '2025-09-30','2025-09-29','2025-09-26','2025-09-25','2025-09-24','2025-09-23',
+      '2025-09-22','2025-09-19','2025-09-18','2025-09-17','2025-09-16','2025-09-15',
+      '2025-08-29','2025-08-28','2025-08-27','2025-08-26','2025-08-25','2025-08-22',
+      '2025-07-31','2025-07-30','2025-07-29','2025-07-28','2025-07-25','2025-07-24',
+      '2025-06-30','2025-06-27','2025-06-26','2025-06-25','2025-06-24','2025-06-23',
+      '2025-05-30','2025-05-29','2025-05-28','2025-05-27','2025-05-26','2025-05-23',
+      '2025-04-30','2025-04-29','2025-04-28','2025-04-25','2025-04-24','2025-04-23',
+      '2025-03-31','2025-03-28','2025-03-27','2025-03-26','2025-03-25','2025-03-24',
+      '2025-02-28','2025-02-27','2025-02-26','2025-02-25','2025-02-24','2025-02-21',
+      '2025-01-31','2025-01-30','2025-01-29','2025-01-28','2025-01-27','2025-01-24',
+      '2025-01-23','2025-01-22','2025-01-21','2025-01-20','2025-01-17','2025-01-16'
+    ];
+
+    var hours = ['07:32','08:15','08:44','09:03','09:27','09:51','10:14','10:38','11:02','11:29','12:01','12:47','13:15','14:02','14:33','15:01','15:28','15:52','16:17','16:44','17:03','17:31','18:02','18:29'];
+    var allDates = dates2026.concat(dates2025);
+
+    for (var i = 0; i < allDates.length; i++) {
+      var d = allDates[i];
+      var numEntries = Math.floor(Math.random() * 2) + 2;
+      for (var j = 0; j < numEntries; j++) {
+        var u = USERS_LOG[Math.floor(Math.random() * USERS_LOG.length)];
+        var action = ACTIONS[Math.floor(Math.random() * ACTIONS.length)];
+        var ip = IPS[Math.floor(Math.random() * IPS.length)];
+        var h = hours[Math.floor(Math.random() * hours.length)];
+        var dur = action === 'LOGOUT' ? '—' : DURATIONS[Math.floor(Math.random() * DURATIONS.length)];
+        logs.push({
+          id: id++,
+          fecha: d + ' ' + h + ':' + String(Math.floor(Math.random()*59)).padStart(2,'0'),
+          email: u.email,
+          org: u.org,
+          action: action,
+          ip: ip,
+          estado: 'Correcto',
+          dur: dur
+        });
+      }
+    }
+    logs.sort(function(a,b){ return b.fecha.localeCompare(a.fecha); });
+    logs.forEach(function(l,i){ l.id = i+1; });
+    return logs;
+  }
+
+  var LOG_DATA = genLogs();
+
+  function filterLogs() {
+    var fUser = document.getElementById('log-filter-user').value;
+    var fAction = document.getElementById('log-filter-action').value;
+    var filtered = LOG_DATA.filter(function(l){
+      return (!fUser || l.email === fUser) && (!fAction || l.action === fAction);
+    });
+    renderLogs(filtered);
+  }
+
+  function renderLogs(logs) {
+    var tbody = document.getElementById('logs-tbody');
+    if (!tbody) return;
+    var show = logs.slice(0, 200);
+    tbody.innerHTML = show.map(function(l){
+      var actionColor = l.action === 'LOGIN' ? 'color:#2563eb;background:#e8f0fe' :
+                        l.action === 'LOGOUT' ? 'color:#6b7260;background:#f0f1eb' :
+                        l.action === 'EXPORT_DATA' ? 'color:#d97706;background:#fef3cd' :
+                        'color:#2E8B57;background:#e8f5ee';
+      return '<tr>' +
+        '<td><span class="td-id">#' + l.id + '</span></td>' +
+        '<td style="font-family:var(--mono);font-size:12px;">' + l.fecha + '</td>' +
+        '<td class="td-email">' + l.email + '</td>' +
+        '<td style="font-size:13px;">' + l.org + '</td>' +
+        '<td><span class="badge-rol" style="' + actionColor + ';font-size:10px;">' + l.action + '</span></td>' +
+        '<td style="font-family:var(--mono);font-size:11px;color:var(--text-muted);">' + l.ip + '</td>' +
+        '<td><span class="badge-estado badge-activo" style="font-size:10px;">' + l.estado + '</span></td>' +
+        '<td style="font-family:var(--mono);font-size:11px;color:var(--text-muted);">' + l.dur + '</td>' +
+        '</tr>';
+    }).join('');
+    document.getElementById('logs-count').textContent = logs.length + ' registros';
   }
 
   loadUsers();
